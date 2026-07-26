@@ -1,37 +1,34 @@
-from flask import Flask, render_template, request
+import streamlit as st
 import pickle
 import numpy as np
 
-app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+# Page Configuration
+st.set_page_config(
+    page_title="Credit Card Fraud Detection System",
+    page_icon="💳",
+    layout="centered"
+)
 
-safe_count = 0
-fraud_count = 0
+# Model Load Karein
+@st.cache_resource
+def load_model():
+    return pickle.load(open('model.pkl', 'rb'))
 
-@app.route('/')
-def home():
-    return render_template('index.html', safe_count=safe_count, fraud_count=fraud_count)
+model = load_model()
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    global safe_count, fraud_count
-    try:
-        time = float(request.form['time'])
-        amount = float(request.form['amount'])
-        
-        features = np.array([[time, amount]])
-        prediction = model.predict(features)
-        
-        if prediction[0] == 0:
-            result = "Safe: This is a Legitimate Transaction."
-            safe_count += 1
-        else:
-            result = "Alert: Fraudulent Transaction Detected!"
-            fraud_count += 1
-        
-        return render_template('index.html', result=result, safe_count=safe_count, fraud_count=fraud_count)
-    except Exception as e:
-        return render_template('index.html', result=f"Error: {str(e)}", safe_count=safe_count, fraud_count=fraud_count)
+st.title("💳 Credit Card Fraud Detection System")
+st.write("Enter the transaction details below to check if it is safe or fraudulent.")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Input fields (Time aur Amount jaisa hamne model.py me banaya tha)
+time = st.number_input("Transaction Time", value=0.0)
+amount = st.number_input("Transaction Amount ($)", value=0.0)
+
+if st.button("Predict Transaction", type="primary"):
+    # Prediction
+    features = np.array([[time, amount]])
+    prediction = model.predict(features)
+    
+    if prediction[0] == 0:
+        st.success("✅ **Safe Transaction:** This is a Legitimate Transaction.")
+    else:
+        st.error("⚠️ **Fraud Alert:** Fraudulent Transaction Detected!")
