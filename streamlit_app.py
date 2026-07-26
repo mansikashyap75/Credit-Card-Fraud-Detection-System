@@ -1,6 +1,7 @@
 import streamlit as st
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Page Configuration
 st.set_page_config(
@@ -19,7 +20,7 @@ model = load_model()
 st.title("💳 Credit Card Fraud Detection System")
 st.write("Enter the transaction details below to check if it is safe or fraudulent.")
 
-# Input fields (Time aur Amount jaisa hamne model.py me banaya tha)
+# Input fields
 time = st.number_input("Transaction Time", value=0.0)
 amount = st.number_input("Transaction Amount ($)", value=0.0)
 
@@ -32,3 +33,17 @@ if st.button("Predict Transaction", type="primary"):
         st.success("✅ **Safe Transaction:** This is a Legitimate Transaction.")
     else:
         st.error("⚠️ **Fraud Alert:** Fraudulent Transaction Detected!")
+
+    # --- Graph / Chart Add Karein ---
+    st.subheader("📊 Transaction Analysis Chart")
+    
+    # Example Bar Chart for Visualization
+    fig, ax = plt.subplots(figsize=(5, 3))
+    categories = ['Transaction Amount']
+    values = [amount]
+    
+    ax.bar(categories, values, color='#3f72af', width=0.4)
+    ax.set_ylabel("Amount ($)")
+    ax.set_title("Input Transaction Overview")
+    
+    st.pyplot(fig)
