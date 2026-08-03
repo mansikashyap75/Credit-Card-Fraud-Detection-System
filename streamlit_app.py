@@ -25,36 +25,39 @@ time = st.number_input("Transaction Time", value=0.0)
 amount = st.number_input("Transaction Amount ($)", value=0.0)
 
 if st.button("Predict Transaction", type="primary"):
-    # Prediction aur Probability (agar model predict_proba support karta hai)
+    # Prediction aur Probability
     features = np.array([[time, amount]])
     prediction = model.predict(features)
     
+    # Probabilities nikalne ki koshish (agar model support karta hai)
     try:
-        proba = model.predict_proba(features)[0][1] * 100 # Fraud probability in %
+        proba_scores = model.predict_proba(features)[0]
+        safe_prob = proba_scores[0] * 100
+        fraud_prob = proba_scores[1] * 100
     except:
-        proba = 100.0 if prediction[0] == 1 else 0.0
+        # Fallback agar predict_proba kaam na kare
+        if prediction[0] == 0:
+            safe_prob = 99.0
+            fraud_prob = 1.0
+        else:
+            safe_prob = 1.0
+            fraud_prob = 99.0
 
     if prediction[0] == 0:
         st.success("✅ **Safe Transaction:** This is a Legitimate Transaction.")
     else:
         st.error("⚠️ **Fraud Alert:** Fraudulent Transaction Detected!")
 
-    # --- Bar Chart with Vertical Risk Score (Y-axis) ---
-    st.subheader("📊 Transaction Risk Analysis (Vertical Bar Chart)")
+    # --- Pie Chart with Model Confidence ---
+    st.subheader("📊 Transaction Risk Probability Distribution")
     
-    fig, ax = plt.subplots(figsize=(5, 3))
-    categories = ['Safe', 'Fraud Risk']
+    # Pie Chart Data
+    labels = ['Safe Probability', 'Fraud Risk']
+    sizes = [safe_prob, fraud_prob]
+    colors_list = ['#28a745', '#dc3545'] # Green for Safe, Red for Fraud
     
-    # Agar safe hai toh safe ka score high, warna fraud ka score high
-    safe_score = 100 - proba
-    fraud_score = proba
-    
-    scores = [safe_score, fraud_score]
-    bar_colors = ['#28a745', '#dc3545']
-    
-    ax.bar(categories, scores, color=bar_colors, width=0.5)
-    ax.set_ylabel("Probability (%)")  # Y-axis vertical label
-    ax.set_ylim(0, 100)
-    ax.set_title("Transaction Confidence Score")
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors_list, shadow=True)
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     
     st.pyplot(fig)
