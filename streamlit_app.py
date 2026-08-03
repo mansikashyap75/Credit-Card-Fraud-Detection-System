@@ -25,30 +25,36 @@ time = st.number_input("Transaction Time", value=0.0)
 amount = st.number_input("Transaction Amount ($)", value=0.0)
 
 if st.button("Predict Transaction", type="primary"):
-    # Prediction
+    # Prediction aur Probability (agar model predict_proba support karta hai)
     features = np.array([[time, amount]])
     prediction = model.predict(features)
     
+    try:
+        proba = model.predict_proba(features)[0][1] * 100 # Fraud probability in %
+    except:
+        proba = 100.0 if prediction[0] == 1 else 0.0
+
     if prediction[0] == 0:
         st.success("✅ **Safe Transaction:** This is a Legitimate Transaction.")
     else:
         st.error("⚠️ **Fraud Alert:** Fraudulent Transaction Detected!")
 
-    # --- Pie Chart Add Karein ---
-    st.subheader("📊 Transaction Risk Breakdown (Pie Chart)")
+    # --- Bar Chart with Vertical Risk Score (Y-axis) ---
+    st.subheader("📊 Transaction Risk Analysis (Vertical Bar Chart)")
     
-    # Example distribution data for visualization based on prediction
-    if prediction[0] == 0:
-        labels = ['Safe Probability', 'Fraud Risk']
-        sizes = [95.0, 5.0]
-        colors_list = ['#28a745', '#dc3545']
-    else:
-        labels = ['Safe Probability', 'Fraud Risk']
-        sizes = [15.0, 85.0]
-        colors_list = ['#28a745', '#dc3545']
-
-    fig, ax = plt.subplots(figsize=(5, 4))
-    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors_list)
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    fig, ax = plt.subplots(figsize=(5, 3))
+    categories = ['Safe', 'Fraud Risk']
+    
+    # Agar safe hai toh safe ka score high, warna fraud ka score high
+    safe_score = 100 - proba
+    fraud_score = proba
+    
+    scores = [safe_score, fraud_score]
+    bar_colors = ['#28a745', '#dc3545']
+    
+    ax.bar(categories, scores, color=bar_colors, width=0.5)
+    ax.set_ylabel("Probability (%)")  # Y-axis vertical label
+    ax.set_ylim(0, 100)
+    ax.set_title("Transaction Confidence Score")
     
     st.pyplot(fig)
