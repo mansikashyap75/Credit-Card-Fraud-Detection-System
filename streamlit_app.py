@@ -34,16 +34,21 @@ if st.button("Predict Transaction", type="primary"):
     else:
         st.error("⚠️ **Fraud Alert:** Fraudulent Transaction Detected!")
 
-    # --- Graph / Chart Add Karein ---
-    st.subheader("📊 Transaction Analysis Chart")
+    # --- Pie Chart Add Karein ---
+    st.subheader("📊 Transaction Risk Breakdown (Pie Chart)")
     
-    # Example Bar Chart for Visualization
-    fig, ax = plt.subplots(figsize=(5, 3))
-    categories = ['Transaction Amount']
-    values = [amount]
-    
-    ax.bar(categories, values, color='#3f72af', width=0.4)
-    ax.set_ylabel("Amount ($)")
-    ax.set_title("Input Transaction Overview")
+    # Example distribution data for visualization based on prediction
+    if prediction[0] == 0:
+        labels = ['Safe Probability', 'Fraud Risk']
+        sizes = [95.0, 5.0]
+        colors_list = ['#28a745', '#dc3545']
+    else:
+        labels = ['Safe Probability', 'Fraud Risk']
+        sizes = [15.0, 85.0]
+        colors_list = ['#28a745', '#dc3545']
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors_list)
+    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
     
     st.pyplot(fig)
